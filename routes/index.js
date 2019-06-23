@@ -3,16 +3,12 @@ var router = express.Router();
 var Twitter = require('twitter');
 require('dotenv').config();
 
-
 var client = new Twitter({
   consumer_key: process.env.TWIT_CONSUMER_KEY,
   consumer_secret: process.env.TWIT_CONSUMER_SECRET,
   access_token_key: process.env.TWIT_ACCESS_KEY,
   access_token_secret: process.env.TWIT_ACCESS_SECRET
 });
-
-var tmyParams = { screen_name: 'tmytrn' };
-var benParams = { screen_name: 'bensiordia' };
 
 const cleanTweets = (tweets) => {
   let obj = {};
@@ -25,31 +21,44 @@ const cleanTweets = (tweets) => {
       let img = JSON.parse(media.substring(1, media.length - 1));
       let imgLink = img.media_url_https
       let cleanTweet = tweets[i].text.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '');
-      let element = {
-        description: cleanTweet,
-        link: imgLink
-      }
-      if (!cleanTweet.includes("RT")) {
+      if (!cleanTweet.includes("RT") && cleanTweet.includes('—')) {
+        cleanTweet = cleanTweet.replace('—', '');
+        let element = {
+          description: cleanTweet,
+          link: imgLink,
+        }
         obj.pics.push(element);
       }
     } else {
-      var tweet = tweets[i].text;
-      if (tweet.includes('—')) {
-        obj.links.push(tweet);
+      if (tweets[i].text.includes('—')) {
+        let url = tweets[i].entities.urls[0].url;
+        let text = tweets[i].text.replace(/(?:https?|ftp):\/\/[\n\S]+/g, '');
+        text = text.replace('—', '');
+        let link = {
+          url: url,
+          text: text
+        }
+        obj.links.push(link);
       }
     }
   }
   return obj;
 }
 
+const params = {exclude_replies: true, count: 70}
+
 /* GET home page. */
 router.get('/', function (req, res, next) {
-  client.get('statuses/user_timeline', tmyParams, function (error, tweets, response) {
-    if (!error) {
-      const cleanedTweets = cleanTweets(tweets);
-      res.render('index', { title: 'Chorizzo', tweets: cleanedTweets.links, pictures: cleanedTweets.pics });
+
+  client.get('statuses/home_timeline', params, function(error, tweets, response){
+    if(!error){
+      const obj = cleanTweets(tweets);
+      res.render('index', { title: 'Chorizzo', tweets: obj.links, pictures: obj.pics });
+
     }
-  })
+  });
+
+
 });
 
 module.exports = router;
