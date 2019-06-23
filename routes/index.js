@@ -45,7 +45,7 @@ const cleanTweets = (tweets) => {
   return obj;
 }
 
-const params = {exclude_replies: true, count: 70}
+const params = {exclude_replies: true, count: 50}
 
 /* GET home page. */
 router.get('/', function (req, res, next) {
