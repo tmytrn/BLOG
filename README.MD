@@ -1,2 +1,2 @@
-Blog for Tommy Tran and Benjamin Siordia
+Tommy's Blog
 
